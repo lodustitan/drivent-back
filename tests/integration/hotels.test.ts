@@ -61,7 +61,6 @@ describe("GET /hotels", () => {
     const enrollment = await createEnrollmentWithAddress(user);
     const ticketType = await createTicketType();
     const hotel = await createRandomHotel();
-    console.log(hotel);
     await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
     await createRandomRoomOfHotel(hotel.id, 0);
 
@@ -70,6 +69,25 @@ describe("GET /hotels", () => {
     const { body, status } = result;
 
     expect(status).toBe(httpStatus.OK);
+    expect(body).toEqual(
+      expect.objectContaining({
+        id: expect.any(Number),
+        name: expect.any(String),
+        image: expect.any(String),
+        createdAt: expect.any(String),
+        updatedAt: expect.any(String),
+        Rooms: expect.arrayContaining([
+          expect.objectContaining({
+            id: expect.any(Number), 
+            name: expect.any(String), 
+            capacity: expect.any(Number), 
+            hotelId: expect.any(Number), 
+            createdAt: expect.any(String), 
+            updatedAt: expect.any(String)
+          })
+        ])
+      })
+    );
   });
 
   it("Should return status 204 if hotel not exist", async () => {
@@ -80,7 +98,7 @@ describe("GET /hotels", () => {
 
     const result = await server.get(`/hotels/${hotel.id}`).set("Authorization", `Bearer ${token}`);
     
-    const { body, status } = result;
+    const { status } = result;
 
     expect(status).toEqual(httpStatus.NO_CONTENT);
   });
@@ -88,7 +106,7 @@ describe("GET /hotels", () => {
   it("Should return status 401 if user not is logged", async () => {
     const result = await server.get("/hotels/1");
     
-    const { body, status } = result;
+    const { status } = result;
 
     expect(status).toEqual(httpStatus.UNAUTHORIZED);
   });
